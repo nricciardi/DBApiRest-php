@@ -136,6 +136,20 @@ class DBApiRest {
             // insert where condition if there is an id
             if(is_int($id)) {
                 $select_query .= " WHERE `" . $pk_name . "`=?"; 
+            } elseif (is_array($id)) {
+                $select_query .= " WHERE";      // add where clause
+                foreach ($id as $key => $value) {
+                    $select_query .= " `" . $pk_name . "`=? OR";
+                }
+
+                // remove the last OR
+                if(($select_query[strlen($select_query)-2] + $select_query[strlen($select_query)-1]) == "OR")
+                    $select_query = substr($select_query, 0, strlen($select_query)-2);
+
+
+                
+            } else {
+                return json_encode($this->PROCESSING_FAILED);
             }
                 
             // execute the query
@@ -205,11 +219,10 @@ class DBApiRest {
                     // for each record replace fk data
                     for ($record=0; $record < count($records); $record++) { 
                         $fk_col_name = $fk_list[$fk]["COLUMN_NAME"];
-                        
+                        $records[$record][$fk_list[$fk]["REFERENCED_TABLE_NAME"]] = $replace_data[$records[$record][$fk_col_name]];
+                    
                         if(isset($this->options["SAVE_PROCESSES_FK_ID"]) && $this->options["SAVE_PROCESSES_FK_ID"] == false)
                             unset($records[$record][$fk_col_name]);
-                            
-                        $records[$record][$fk_list[$fk]["REFERENCED_TABLE_NAME"]] = $replace_data[$records[$record][$fk_col_name]];
                     }
                 }    
             }
@@ -271,6 +284,51 @@ class DBApiRest {
                 return json_encode($this->PROCESSING_FAILED);
             else
                 return json_encode($this->SUCCESSFUL);
+
+        } catch (Exception $e) {
+            // echo $e->getMessage();
+            return json_encode($this->CONNESSION_ERROR);
+        }
+    }
+
+    // delete a resource
+    public function delete($table_name = null, $id = null) {
+        try {
+            
+            // check input
+            if($table_name == null || $id == null)
+                return json_encode($this->MISSING_DATA);
+            
+            // create the delete query
+            $delete_query = "DELETE FROM `" . $this->sanitizeField($table_name) . "` WHERE";
+
+            // insert where condition
+            if (is_array($id)) {        // if there are more ids
+                foreach ($id as $key => $value) {
+                    $delete_query .= " `" . $this->getPkName($table_name) . "`=? OR";
+                }
+
+                // remove the last OR
+                if(($delete_query[strlen($delete_query)-2] + $delete_query[strlen($delete_query)-1]) == "OR")
+                    $delete_query = substr($delete_query, 0, strlen($delete_query)-2);
+
+            } elseif (is_int($id)) {
+                $delete_query .= " `" . $this->getPkName($table_name) . "`=?";
+                $id = array($id);       // convert an int to array to use it in execute
+            } else {
+                return json_encode($this->PROCESSING_FAILED);
+            }
+
+            $sth = $this->pdoConnection->prepare($delete_query);
+            $result = $sth->execute($id);
+            
+            // check result
+            if($result == false)
+                return json_encode($this->PROCESSING_FAILED);
+            else
+                return json_encode($this->SUCCESSFUL);
+            
+                
 
         } catch (Exception $e) {
             echo $e->getMessage();
@@ -417,7 +475,7 @@ define("USERNAME", "root");
 define("PASSWORD", "");
 
 $dbApiRest = new DBApiRest(HOSTNAME, DATABASE_NAME, USERNAME, PASSWORD);
-var_dump($dbApiRest->read("commission"));
+echo $dbApiRest->delete("commission", 1);
 
 
 
