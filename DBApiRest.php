@@ -35,7 +35,7 @@ class DBApiRest {
                 $this->database_name = $database_name;
             }
         } catch (Exception $e) {
-            throw new Exception('Error during connection to dabase');
+            echo $this->CONNESSION_ERROR;
         }
         
     }
