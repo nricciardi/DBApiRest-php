@@ -144,12 +144,7 @@ class DBApiRest {
 
                 // remove the last OR
                 if(($select_query[strlen($select_query)-2] + $select_query[strlen($select_query)-1]) == "OR")
-                    $select_query = substr($select_query, 0, strlen($select_query)-2);
-
-
-                
-            } else {
-                return json_encode($this->PROCESSING_FAILED);
+                    $select_query = substr($select_query, 0, strlen($select_query)-2);   
             }
                 
             // execute the query
