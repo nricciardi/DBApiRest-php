@@ -77,7 +77,7 @@ class DBApiRest {
             // check not null field
             foreach ($not_null_fields as $key => $value) {
                 if(!array_key_exists($value, $new_record))
-                    return $this->MISSING_DATA;
+                    return json_encode($this->MISSING_DATA);
             }
 
             // add field values
