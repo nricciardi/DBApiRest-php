@@ -183,6 +183,10 @@ class DBApiRest {
 
                     // remove duplicates
                     $all_id = array_unique($all_id);
+                    
+                    // check if there are some $id
+                    if(empty($all_id))
+                        continue;
 
                     if(!isset($fk_list[$fk]["REFERENCED_TABLE_SCHEMA"]) || !isset($fk_list[$fk]["REFERENCED_TABLE_NAME"]) || !isset($fk_list[$fk]["REFERENCED_COLUMN_NAME"]))
                         throw new Exception("Subprocess error");
